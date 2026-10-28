@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sổ Giao Ca - Hikvision PDA</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 12px; background: #f0f2f5; margin: 0; color: #333; }
+        .container { max-width: 450px; margin: auto; background: #fff; padding: 16px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        h2 { text-align: center; font-size: 18px; color: #1a73e8; margin-top: 0; margin-bottom: 16px; font-weight: 700; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-weight: 600; margin-bottom: 4px; font-size: 13px; color: #555; }
+        input, select { width: 100%; padding: 10px 12px; border: 1px solid #ccd0d5; border-radius: 6px; font-size: 15px; background: #fff; }
+        input:focus, select:focus { border-color: #1a73e8; outline: none; box-shadow: 0 0 0 2px rgba(26,115,232,0.2); }
+        .readonly { background: #f5f6f7; font-weight: bold; color: #1c1e21; }
+        .btn-submit { width: 100%; background: #28a745; color: white; padding: 12px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 8px; }
+        .btn-submit:active { background: #218838; }
+        .loading { display: none; text-align: center; color: #1a73e8; font-weight: bold; margin-top: 10px; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>SỔ GIAO CA SẢN XUẤT</h2>
+    
+    <div class="form-group">
+        <label>Ca làm việc:</label>
+        <select id="caLamViec">
+            <option value="Ca 1">Ca 1 (Ngày)</option>
+            <option value="Ca 2">Ca 2 (Đêm)</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Quét Barcode Máy / SO:</label>
+        <!-- Tự động focus để phím cứng quét mã của Hikvision bắn dữ liệu thẳng vào đây -->
+        <input type="text" id="barcodeInput" placeholder="Chạm hoặc quét mã..." autofocus autocomplete="off">
+    </div>
+
+    <div class="form-group">
+        <label>Tên Máy:</label>
+        <input type="text" id="tenMay" class="readonly" readonly placeholder="Tự động hiển thị...">
+    </div>
+
+    <div class="form-group">
+        <label>Tên SKU:</label>
+        <input type="text" id="sku" class="readonly" readonly placeholder="Tự động hiển thị...">
+    </div>
+
+    <div class="form-group">
+        <label>Số Lượng Giao Ca:</label>
+        <input type="number" id="slGiao" placeholder="Nhập số lượng giao ca">
+    </div>
+
+    <div class="form-group">
+        <label>Số Lượng Nhận Ca:</label>
+        <input type="number" id="slNhan" placeholder="Nhập số lượng nhận ca">
+    </div>
+
+    <button class="btn-submit" onclick="submitData()">LƯU GIAO CA</button>
+    <div id="loadingText" class="loading">Đang gửi dữ liệu về hệ thống...</div>
+</div>
+
+<script>
+    // Dữ liệu danh mục máy và SKU (Sếp có thể thêm bớt danh sách mã barcode máy tại đây)
+    const database = [
+        { barcode: "DHM01", tenMay: "Máy Cắt DS 01", sku: "4248" },
+        { barcode: "DHM02", tenMay: "Máy Cắt DS 02", sku: "4246" },
+    ];
+
+    // Dán URL Web App Google Apps Script của Sếp vào đây:
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwo27spaopjJSXN1jAZmLMjt5-8yOTlQSG7FXWThGKFRHaqZuEGH4HO6QTtmUFUZczZ/exec";
+
+    const barcodeInput = document.getElementById('barcodeInput');
+    const tenMayInput = document.getElementById('tenMay');
+    const skuInput = document.getElementById('sku');
+    let currentBarcode = "";
+
+    // Lắng nghe sự kiện phím Enter do thiết bị PDA Hikvision bắn ra sau khi quét xong mã vạch
+    barcodeInput.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            processScan(barcodeInput.value.trim());
+        }
+    });
+
+    function processScan(code) {
+        const found = database.find(item => item.barcode.toLowerCase() === code.toLowerCase());
+        if (found) {
+            currentBarcode = found.barcode;
+            tenMayInput.value = found.tenMay;
+            skuInput.value = found.sku;
+            document.getElementById('slGiao').focus(); // Chuyển con trỏ sang ô số lượng giao cực nhanh
+        } else {
+            alert("Mã Barcode [" + code + "] không tồn tại trong hệ thống!");
+            resetForm();
+        }
+    }
+
+    function submitData() {
+        const ca = document.getElementById('caLamViec').value;
+        const tenMay = tenMayInput.value;
+        const sku = skuInput.value;
+        const slGiao = document.getElementById('slGiao').value;
+        const slNhan = document.getElementById('slNhan').value;
+
+        if (!tenMay || !slGiao || !slNhan) {
+            alert("Vui lòng quét mã máy và nhập đầy đủ số lượng giao/nhận!");
+            return;
+        }
+
+        const payload = {
+            caLamViec: ca,
+            barcode: currentBarcode,
+            tenMay: tenMay,
+            sku: sku,
+            soLuongGiao: slGiao,
+            soLuongNhan: slNhan
+        };
+
+        document.getElementById('loadingText').style.display = 'block';
+
+        // Gửi dữ liệu về Google Sheets thông qua Fetch API
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors', // Tránh lỗi CORS khi gọi từ web tĩnh lên Google Script
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(() => {
+            document.getElementById('loadingText').style.display = 'none';
+            alert("Đã lưu dữ liệu giao ca thành công!");
+            resetForm();
+        })
+        .catch(error => {
+            document.getElementById('loadingText').style.display = 'none';
+            alert("Lỗi kết nối: " + error);
+        });
+    }
+
+    function resetForm() {
+        barcodeInput.value = "";
+        tenMayInput.value = "";
+        skuInput.value = "";
+        document.getElementById('slGiao').value = "";
+        document.getElementById('slNhan').value = "";
+        currentBarcode = "";
+        barcodeInput.focus();
+    }
+</script>
+
+</body>
+</html>
