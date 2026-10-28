@@ -21,12 +21,12 @@
         
         .btn-primary { width: 100%; background: #1a73e8; color: white; padding: 12px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 6px; }
         .btn-primary:active { background: #1557b0; }
+        .btn-primary:disabled, .btn-warning:disabled, .btn-secondary:disabled, .btn-add:disabled, .btn-del:disabled { background: #6c757d !important; cursor: not-allowed !important; opacity: 0.6; }
         
         .btn-warning { width: 100%; background: #ffc107; color: #333; padding: 10px; border: none; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 6px; }
         .btn-warning:active { background: #e0a800; }
 
         .btn-secondary { width: 100%; background: #6c757d; color: white; padding: 10px; border: none; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 6px; }
-        .btn-secondary:active { background: #5a6268; }
         
         .link-text { text-align: center; margin-top: 12px; font-size: 14px; color: #1a73e8; cursor: pointer; text-decoration: underline; }
         
@@ -100,7 +100,7 @@
         <button class="btn-secondary" onclick="switchScreen('mainScreen')">Quay lại Sổ Giao Ca</button>
     </div>
 
-    <!-- MÀN HÌNH: THÊM MÃ BARCODE MỚI (MỚI) -->
+    <!-- MÀN HÌNH: THÊM MÃ BARCODE MỚI -->
     <div id="addNewBarcodeScreen" class="screen">
         <h2>THÊM MÃ BARCODE MỚI</h2>
         <div class="form-group">
@@ -131,8 +131,7 @@
 
         <h2>SỔ GIAO CA SẢN XUẤT</h2>
         
-        <!-- Nút chuyển sang màn hình Thêm mã mới -->
-        <button class="btn-warning" onclick="switchScreen('addNewBarcodeScreen')">+ THÊM MÃ BARCODE MỚI VÀO HỆ THỐNG</button>
+        <button id="btnNavAddCode" class="btn-warning" onclick="switchScreen('addNewBarcodeScreen')">+ THÊM MÃ BARCODE MỚI VÀO HỆ THỐNG</button>
         <hr style="border: 0; border-top: 1px solid #ddd; margin: 10px 0;">
 
         <div class="form-group">
@@ -184,7 +183,7 @@
             </div>
         </div>
 
-        <button class="btn-primary" onclick="addToCart()">+ THÊM VÀO DANH SÁCH CA</button>
+        <button id="btnAddCart" class="btn-primary" onclick="addToCart()">+ THÊM VÀO DANH SÁCH CA</button>
 
         <div style="margin-top: 15px; border-top: 2px dashed #ddd; padding-top: 10px;">
             <div style="font-size: 14px; font-weight: bold; margin-bottom: 6px;">Danh sách chờ gửi (<span id="cartCount">0</span>)</div>
@@ -202,7 +201,7 @@
             </table>
 
             <button id="btnSubmitAll" class="btn-submit-all" onclick="submitAllData()">GỬI TẤT CẢ LÊN HỆ THỐNG</button>
-            <div id="loadingText" class="loading">Đang đẩy dữ liệu hàng loạt lên Google Sheets...</div>
+            <div id="loadingText" class="loading">Đang đẩy dữ liệu hàng loạt lên Google Sheets... Vui lòng đợi!</div>
         </div>
     </div>
 </div>
@@ -235,7 +234,7 @@
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
         if (screenId === 'mainScreen') {
-            fetchMasterData(); // Tải lại danh mục mới nhất khi quay về màn hình chính
+            fetchMasterData();
         }
     }
 
@@ -289,7 +288,7 @@
             body: JSON.stringify(payload)
         })
         .then(() => {
-            alert("Đăng ký thành công! Vui lòng chờ Admin (Sếp) duyệt Active.");
+            alert("Đăng ký thành công! Vui lòng chờ Admin duyệt Active.");
             switchScreen('loginScreen');
         })
         .catch(err => alert("Lỗi kết nối: " + err));
@@ -321,7 +320,6 @@
         .catch(err => alert("Lỗi kết nối: " + err));
     }
 
-    // XỬ LÝ THÊM MÃ BARCODE MỚI (KIỂM TRA TRÙNG THEO BARCODE)
     function handleAddNewBarcode() {
         const barcode = document.getElementById('newBarcode').value.trim();
         const moTa = document.getElementById('newMoTa').value.trim();
@@ -332,10 +330,9 @@
             return;
         }
 
-        // Lọc kiểm tra trùng lặp trên bộ nhớ hiện tại theo Barcode
         const exists = database.find(item => item.barcode.toLowerCase() === barcode.toLowerCase());
         if (exists) {
-            alert("Mã Barcode [" + barcode + "] đã tồn tại trong hệ thống với Mô tả: '" + exists.moTa + "'! Không thể thêm mới.");
+            alert("Mã Barcode [" + barcode + "] đã tồn tại trong hệ thống với Mô tả: '" + exists.moTa + "'!");
             return;
         }
 
@@ -352,11 +349,8 @@
             body: JSON.stringify(payload)
         })
         .then(() => {
-            alert("Đã thêm mã Barcode mới thành công vào hệ thống!");
-            // Cập nhật ngay vào database tạm trên app để dùng luôn không cần tải lại
+            alert("Đã thêm mã Barcode mới thành công!");
             database.push({ barcode: barcode, moTa: moTa, sku: sku });
-            
-            // Xóa form và quay về màn hình chính
             document.getElementById('newBarcode').value = "";
             document.getElementById('newMoTa').value = "";
             document.getElementById('newSku').value = "";
@@ -372,7 +366,6 @@
         switchScreen('loginScreen');
     }
 
-    // Quét barcode ca sản xuất
     const barcodeInput = document.getElementById('barcodeInput');
     const moTaInput = document.getElementById('moTa');
     const skuInput = document.getElementById('sku');
@@ -407,7 +400,7 @@
         if (found) {
             document.getElementById('slGiao').focus();
         } else {
-            alert("Mã Barcode [" + code + "] chưa có trong hệ thống! Vui lòng bấm nút 'THÊM MÃ BARCODE MỚI' phía trên để cập nhật.");
+            alert("Mã Barcode [" + code + "] chưa có trong hệ thống! Vui lòng bấm nút 'THÊM MÃ BARCODE MỚI' phía trên.");
             resetInputOnly();
         }
     }
@@ -460,6 +453,16 @@
         updateCartTable();
     }
 
+    // HÀM KHÓA / MỞ KHÓA TOÀN BỘ GIAO DIỆN KHI ĐANG GỬI DỮ LIỆU
+    function setAppLocked(isLocked) {
+        document.getElementById('btnSubmitAll').disabled = isLocked;
+        document.getElementById('btnAddCart').disabled = isLocked;
+        document.getElementById('btnNavAddCode').disabled = isLocked;
+        
+        // Khóa tất cả các nút Xóa trong bảng danh sách tạm
+        document.querySelectorAll('.btn-del').forEach(btn => btn.disabled = isLocked);
+    }
+
     function submitAllData() {
         if (cartItems.length === 0) {
             alert("Danh sách đang trống!");
@@ -469,8 +472,9 @@
         const btnSubmit = document.getElementById('btnSubmitAll');
         const loadingText = document.getElementById('loadingText');
 
-        btnSubmit.disabled = true;
-        btnSubmit.innerText = "ĐANG GỬI...";
+        // BẬT TRẠNG THÁI KHÓA TOÀN BỘ GIAO DIỆN
+        setAppLocked(true);
+        btnSubmit.innerText = "ĐANG GỬI DỮ LIỆU...";
         loadingText.style.display = 'block';
 
         const payload = {
@@ -478,31 +482,46 @@
             username: currentUser.username,
             ngayBaoCao: document.getElementById('ngayBaoCao').value,
             kip: document.getElementById('kipLamViec').value,
-            caLamViec: document.getElementById('caLamViec5' || 'caLamViec').value,
+            caLamViec: document.getElementById('caLamViec').value,
             items: cartItems
         };
 
-        fetch(SCRIPT_URL, {
-            method: 'POST', mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        })
-        .then(() => {
+        // Sử dụng Form URL encoded kết hợp iframe ngầm để gửi dữ liệu mượt mà, không bị kẹt CORS
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = SCRIPT_URL;
+        form.target = 'hidden_iframe';
+
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'data';
+        input.value = JSON.stringify(payload);
+        form.appendChild(input);
+
+        let iframe = document.getElementById('hidden_iframe');
+        if (!iframe) {
+            iframe = document.createElement('iframe');
+            iframe.name = 'hidden_iframe';
+            iframe.id = 'hidden_iframe';
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+        }
+
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+
+        // Sau 1.5 giây (đảm bảo Google Sheets đã nhận xong), mở khóa giao diện và reset giỏ hàng
+        setTimeout(() => {
             loadingText.style.display = 'none';
-            btnSubmit.disabled = false;
+            setAppLocked(false);
             btnSubmit.innerText = "GỬI TẤT CẢ LÊN HỆ THỐNG";
 
-            alert("Đã gửi thành công " + cartItems.length + " mục!");
+            alert("Đã gửi thành công " + cartItems.length + " mục lên hệ thống!");
             cartItems = [];
             updateCartTable();
             resetInputOnly();
-        })
-        .catch(error => {
-            loadingText.style.display = 'none';
-            btnSubmit.disabled = false;
-            btnSubmit.innerText = "GỬI TẤT CẢ LÊN HỆ THỐNG";
-            alert("Lỗi kết nối: " + error);
-        });
+        }, 1500);
     }
 
     function resetInputOnly() {
