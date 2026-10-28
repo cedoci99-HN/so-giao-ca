@@ -6,18 +6,29 @@
     <title>Sổ Giao Ca - Cedo Việt Nam</title>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 12px; background: #f0f2f5; margin: 0; color: #333; }
-        .container { max-width: 450px; margin: auto; background: #fff; padding: 16px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        h2 { text-align: center; font-size: 18px; color: #1a73e8; margin-top: 0; margin-bottom: 8px; font-weight: 700; }
-        .sync-status { text-align: center; font-size: 12px; color: #28a745; margin-bottom: 12px; font-weight: bold; }
-        .form-group { margin-bottom: 12px; }
-        label { display: block; font-weight: 600; margin-bottom: 4px; font-size: 13px; color: #555; }
-        input, select { width: 100%; padding: 10px 12px; border: 1px solid #ccd0d5; border-radius: 6px; font-size: 15px; background: #fff; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 10px; background: #f0f2f5; margin: 0; color: #333; }
+        .container { max-width: 480px; margin: auto; background: #fff; padding: 14px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        h2 { text-align: center; font-size: 17px; color: #1a73e8; margin-top: 0; margin-bottom: 6px; font-weight: 700; }
+        .sync-status { text-align: center; font-size: 11px; color: #28a745; margin-bottom: 10px; font-weight: bold; }
+        .form-group { margin-bottom: 10px; }
+        label { display: block; font-weight: 600; margin-bottom: 3px; font-size: 12px; color: #555; }
+        input, select { width: 100%; padding: 8px 10px; border: 1px solid #ccd0d5; border-radius: 6px; font-size: 14px; background: #fff; }
         input:focus, select:focus { border-color: #1a73e8; outline: none; box-shadow: 0 0 0 2px rgba(26,115,232,0.2); }
         .readonly { background: #e9ecef; font-weight: bold; color: #000; }
-        .btn-submit { width: 100%; background: #28a745; color: white; padding: 12px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 8px; }
-        .btn-submit:active { background: #218838; }
-        .loading { display: none; text-align: center; color: #1a73e8; font-weight: bold; margin-top: 10px; font-size: 14px; }
+        .row-group { display: flex; gap: 8px; }
+        .row-group .form-group { flex: 1; }
+        .btn-add { width: 100%; background: #1a73e8; color: white; padding: 10px; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 4px; }
+        .btn-add:active { background: #1557b0; }
+        
+        .cart-section { margin-top: 15px; border-top: 2px dashed #ddd; padding-top: 10px; }
+        .cart-title { font-size: 14px; font-weight: bold; color: #333; margin-bottom: 6px; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 10px; }
+        th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
+        th { background: #f8f9fa; color: #333; }
+        .btn-del { background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+        .btn-submit-all { width: 100%; background: #28a745; color: white; padding: 12px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .btn-submit-all:active { background: #218838; }
+        .loading { display: none; text-align: center; color: #1a73e8; font-weight: bold; margin-top: 8px; font-size: 13px; }
     </style>
 </head>
 <body>
@@ -26,21 +37,38 @@
     <h2>SỔ GIAO CA SẢN XUẤT</h2>
     <div id="syncStatus" class="sync-status">Đang tải danh mục...</div>
     
+    <!-- Trường chọn Ngày Báo Cáo -->
     <div class="form-group">
-        <label>Ca làm việc:</label>
-        <select id="caLamViec">
-            <option value="Ca 1">Ca 1 (Ngày)</option>
-            <option value="Ca 2">Ca 2 (Đêm)</option>
-        </select>
+        <label>Ngày Báo Cáo:</label>
+        <input type="date" id="ngayBaoCao">
+    </div>
+
+    <!-- Chọn Kíp và Ca (A, B, C) -->
+    <div class="row-group">
+        <div class="form-group">
+            <label>Kíp làm việc:</label>
+            <select id="kipLamViec">
+                <option value="Kíp Ngày (08h-20h)">Kíp Ngày (08h - 20h)</option>
+                <option value="Kíp Đêm (20h-08h)">Kíp Đêm (20h - 08h)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Ca làm việc:</label>
+            <select id="caLamViec">
+                <option value="Ca A">Ca A</option>
+                <option value="Ca B">Ca B</option>
+                <option value="Ca C">Ca C</option>
+            </select>
+        </div>
     </div>
 
     <div class="form-group">
-        <label>Quét Barcode:</label>
-        <input type="text" id="barcodeInput" placeholder="Chạm hoặc quét mã sản phẩm..." autofocus autocomplete="off">
+        <label>Quét Barcode Sản Phẩm / Máy:</label>
+        <input type="text" id="barcodeInput" placeholder="Chạm hoặc quét mã..." autofocus autocomplete="off">
     </div>
 
     <div class="form-group">
-        <label>Mô tả:</label> <!-- Đã đổi từ Tên máy thành Mô tả -->
+        <label>Mô tả:</label>
         <input type="text" id="moTa" class="readonly" readonly placeholder="Tự động hiển thị mô tả...">
     </div>
 
@@ -49,27 +77,52 @@
         <input type="text" id="sku" class="readonly" readonly placeholder="Tự động hiển thị SKU...">
     </div>
 
-    <div class="form-group">
-        <label>Số Lượng Giao Ca:</label>
-        <input type="number" id="slGiao" placeholder="Nhập số lượng giao ca">
+    <div class="row-group">
+        <div class="form-group">
+            <label>SL Giao:</label>
+            <input type="number" id="slGiao" placeholder="Giao">
+        </div>
+        <div class="form-group">
+            <label>SL Nhận:</label>
+            <input type="number" id="slNhan" placeholder="Nhận">
+        </div>
     </div>
 
-    <div class="form-group">
-        <label>Số Lượng Nhận Ca:</label>
-        <input type="number" id="slNhan" placeholder="Nhập số lượng nhận ca">
-    </div>
+    <button class="btn-add" onclick="addToCart()">+ THÊM VÀO DANH SÁCH CA</button>
 
-    <button class="btn-submit" onclick="submitData()">LƯU GIAO CA</button>
-    <div id="loadingText" class="loading">Đang gửi dữ liệu về hệ thống...</div>
+    <div class="cart-section">
+        <div class="cart-title">
+            <span>Danh sách chờ gửi (<span id="cartCount">0</span>)</span>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Mô tả / SKU</th>
+                    <th>Giao/Nhận</th>
+                    <th>Xóa</th>
+                </tr>
+            </thead>
+            <tbody id="cartTableBody">
+                <tr><td colspan="3" style="text-align: center; color: #777;">Chưa có sản phẩm nào được thêm.</td></tr>
+            </tbody>
+        </table>
+
+        <button class="btn-submit-all" onclick="submitAllData()">GỬI TẤT CẢ LÊN HỆ THỐNG</button>
+        <div id="loadingText" class="loading">Đang đẩy dữ liệu hàng loạt lên Google Sheets...</div>
+    </div>
 </div>
 
 <script>
-    // Dán URL Web App Google Apps Script của Sếp vào đây:
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwo27spaopjJSXN1jAZmLMjt5-8yOTlQSG7FXWThGKFRHaqZuEGH4HO6QTtmUFUZczZ/exec";
 
     let database = [];
+    let cartItems = [];
 
+    // Tự động gán ngày hôm nay vào ô chọn ngày khi mở app
     window.onload = function() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('ngayBaoCao').value = today;
+
         fetch(SCRIPT_URL)
             .then(response => response.json())
             .then(data => {
@@ -121,29 +174,73 @@
             document.getElementById('slGiao').focus();
         } else {
             alert("Mã Barcode [" + code + "] không tồn tại trong hệ thống!");
-            resetForm();
+            resetInputOnly();
         }
     }
 
-    function submitData() {
-        const ca = document.getElementById('caLamViec').value;
+    function addToCart() {
         const moTa = moTaInput.value;
         const sku = skuInput.value;
         const slGiao = document.getElementById('slGiao').value;
         const slNhan = document.getElementById('slNhan').value;
 
         if (!moTa || !slGiao || !slNhan) {
-            alert("Vui lòng quét mã barcode hợp lệ và nhập đầy đủ số lượng giao/nhận!");
+            alert("Vui lòng quét mã hợp lệ và nhập đủ số lượng Giao / Nhận trước khi thêm!");
             return;
         }
 
-        const payload = {
-            caLamViec: ca,
+        cartItems.push({
             barcode: currentBarcode,
             moTa: moTa,
             sku: sku,
             soLuongGiao: slGiao,
             soLuongNhan: slNhan
+        });
+
+        updateCartTable();
+        resetInputOnly();
+    }
+
+    function updateCartTable() {
+        const tbody = document.getElementById('cartTableBody');
+        document.getElementById('cartCount').innerText = cartItems.length;
+
+        if (cartItems.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #777;">Chưa có sản phẩm nào được thêm.</td></tr>';
+            return;
+        }
+
+        let html = '';
+        cartItems.forEach((item, index) => {
+            html += `<tr>
+                <td><b>${item.moTa}</b><br><span style="color:#555; font-size:10px;">SKU: ${item.sku}</span></td>
+                <td>G: ${item.soLuongGiao}<br>N: ${item.soLuongNhan}</td>
+                <td style="text-align: center;"><button class="btn-del" onclick="removeItem(${index})">Xóa</button></td>
+            </tr>`;
+        });
+        tbody.innerHTML = html;
+    }
+
+    function removeItem(index) {
+        cartItems.splice(index, 1);
+        updateCartTable();
+    }
+
+    function submitAllData() {
+        if (cartItems.length === 0) {
+            alert("Danh sách đang trống, vui lòng thêm ít nhất một sản phẩm!");
+            return;
+        }
+
+        const ngayBaoCao = document.getElementById('ngayBaoCao').value;
+        const kip = document.getElementById('kipLamViec').value;
+        const ca = document.getElementById('caLamViec').value;
+
+        const payload = {
+            ngayBaoCao: ngayBaoCao,
+            kip: kip,
+            caLamViec: ca,
+            items: cartItems
         };
 
         document.getElementById('loadingText').style.display = 'block';
@@ -156,8 +253,10 @@
         })
         .then(() => {
             document.getElementById('loadingText').style.display = 'none';
-            alert("Đã lưu dữ liệu giao ca thành công!");
-            resetForm();
+            alert("Đã gửi thành công " + cartItems.length + " mục cho ngày " + ngayBaoCao + " (" + kip + " - " + ca + ")!");
+            cartItems = [];
+            updateCartTable();
+            resetInputOnly();
         })
         .catch(error => {
             document.getElementById('loadingText').style.display = 'none';
@@ -165,10 +264,12 @@
         });
     }
 
-    function resetForm() {
+    function resetInputOnly() {
         barcodeInput.value = "";
         moTaInput.value = "";
         skuInput.value = "";
+        document.getElementById('slGiao').value = "";
+        document.getElementById('slNhan').value = "";
         currentBarcode = "";
         barcodeInput.focus();
     }
