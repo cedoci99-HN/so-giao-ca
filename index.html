@@ -3,112 +3,207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sổ Giao Ca - Cedo Việt Nam</title>
+    <title>Sổ Giao Ca - Quản Lý Sản Xuất</title>
     <style>
         * { box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 10px; background: #f0f2f5; margin: 0; color: #333; }
-        .container { max-width: 480px; margin: auto; background: #fff; padding: 14px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        h2 { text-align: center; font-size: 17px; color: #1a73e8; margin-top: 0; margin-bottom: 6px; font-weight: 700; }
-        .sync-status { text-align: center; font-size: 11px; color: #28a745; margin-bottom: 10px; font-weight: bold; }
-        .form-group { margin-bottom: 10px; }
-        label { display: block; font-weight: 600; margin-bottom: 3px; font-size: 12px; color: #555; }
-        input, select { width: 100%; padding: 8px 10px; border: 1px solid #ccd0d5; border-radius: 6px; font-size: 14px; background: #fff; }
+        .container { max-width: 480px; margin: auto; background: #fff; padding: 16px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        h2 { text-align: center; font-size: 18px; color: #1a73e8; margin-top: 0; margin-bottom: 12px; font-weight: 700; }
+        
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-weight: 600; margin-bottom: 4px; font-size: 13px; color: #555; }
+        input, select { width: 100%; padding: 10px 12px; border: 1px solid #ccd0d5; border-radius: 6px; font-size: 15px; background: #fff; }
         input:focus, select:focus { border-color: #1a73e8; outline: none; box-shadow: 0 0 0 2px rgba(26,115,232,0.2); }
         .readonly { background: #e9ecef; font-weight: bold; color: #000; }
+        
+        .btn-primary { width: 100%; background: #1a73e8; color: white; padding: 12px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 6px; }
+        .btn-primary:active { background: #1557b0; }
+        
+        .btn-warning { width: 100%; background: #ffc107; color: #333; padding: 10px; border: none; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 6px; }
+        .btn-warning:active { background: #e0a800; }
+
+        .btn-secondary { width: 100%; background: #6c757d; color: white; padding: 10px; border: none; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 6px; }
+        .btn-secondary:active { background: #5a6268; }
+        
+        .link-text { text-align: center; margin-top: 12px; font-size: 14px; color: #1a73e8; cursor: pointer; text-decoration: underline; }
+        
+        .header-user { display: flex; justify-content: space-between; align-items: center; background: #e8f0fe; padding: 8px 12px; border-radius: 6px; margin-bottom: 14px; font-size: 13px; }
+        .header-user span { font-weight: bold; color: #1a73e8; }
+        .btn-logout { background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; }
+
         .row-group { display: flex; gap: 8px; }
         .row-group .form-group { flex: 1; }
-        .btn-add { width: 100%; background: #1a73e8; color: white; padding: 10px; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 4px; }
-        .btn-add:active { background: #1557b0; }
         
-        .cart-section { margin-top: 15px; border-top: 2px dashed #ddd; padding-top: 10px; }
-        .cart-title { font-size: 14px; font-weight: bold; color: #333; margin-bottom: 6px; }
         table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 10px; }
         th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
         th { background: #f8f9fa; color: #333; }
         .btn-del { background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+        
         .btn-submit-all { width: 100%; background: #28a745; color: white; padding: 12px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; }
-        .btn-submit-all:active { background: #218838; }
+        .btn-submit-all:disabled { background: #6c757d; cursor: not-allowed; opacity: 0.7; }
+        
         .loading { display: none; text-align: center; color: #1a73e8; font-weight: bold; margin-top: 8px; font-size: 13px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>SỔ GIAO CA SẢN XUẤT</h2>
-    <div id="syncStatus" class="sync-status">Đang tải danh mục...</div>
-    
-    <!-- Trường chọn Ngày Báo Cáo -->
-    <div class="form-group">
-        <label>Ngày Báo Cáo:</label>
-        <input type="date" id="ngayBaoCao">
-    </div>
-
-    <!-- Chọn Kíp và Ca (A, B, C) -->
-    <div class="row-group">
+    <!-- MÀN HÌNH: ĐĂNG NHẬP -->
+    <div id="loginScreen" class="screen active">
+        <h2>ĐĂNG NHẬP HỆ THỐNG</h2>
         <div class="form-group">
-            <label>Kíp làm việc:</label>
-            <select id="kipLamViec">
-                <option value="Kíp Ngày (08h-20h)">Kíp Ngày (08h - 20h)</option>
-                <option value="Kíp Đêm (20h-08h)">Kíp Đêm (20h - 08h)</option>
-            </select>
+            <label>Tên đăng nhập (Username):</label>
+            <input type="text" id="loginUser" placeholder="Nhập username...">
         </div>
         <div class="form-group">
-            <label>Ca làm việc:</label>
-            <select id="caLamViec">
-                <option value="Ca A">Ca A</option>
-                <option value="Ca B">Ca B</option>
-                <option value="Ca C">Ca C</option>
-            </select>
+            <label>Mật khẩu:</label>
+            <input type="password" id="loginPass" placeholder="Nhập mật khẩu...">
         </div>
+        <button class="btn-primary" onclick="handleLogin()">ĐĂNG NHẬP</button>
+        <div class="link-text" onclick="switchScreen('registerScreen')">Chưa có tài khoản? Đăng ký ngay</div>
     </div>
 
-    <div class="form-group">
-        <label>Quét Barcode Sản Phẩm / Máy:</label>
-        <input type="text" id="barcodeInput" placeholder="Chạm hoặc quét mã..." autofocus autocomplete="off">
-    </div>
-
-    <div class="form-group">
-        <label>Mô tả:</label>
-        <input type="text" id="moTa" class="readonly" readonly placeholder="Tự động hiển thị mô tả...">
-    </div>
-
-    <div class="form-group">
-        <label>Tên SKU:</label>
-        <input type="text" id="sku" class="readonly" readonly placeholder="Tự động hiển thị SKU...">
-    </div>
-
-    <div class="row-group">
+    <!-- MÀN HÌNH: ĐĂNG KÝ -->
+    <div id="registerScreen" class="screen">
+        <h2>ĐĂNG KÝ TÀI KHOẢN</h2>
         <div class="form-group">
-            <label>SL Giao:</label>
-            <input type="number" id="slGiao" placeholder="Giao">
+            <label>Tên đăng nhập muốn tạo:</label>
+            <input type="text" id="regUser" placeholder="Ví dụ: toiruong01">
         </div>
         <div class="form-group">
-            <label>SL Nhận:</label>
-            <input type="number" id="slNhan" placeholder="Nhận">
+            <label>Mật khẩu:</label>
+            <input type="password" id="regPass" placeholder="Nhập mật khẩu...">
         </div>
+        <div class="form-group">
+            <label>Họ và tên:</label>
+            <input type="text" id="regName" placeholder="Ví dụ: Nguyễn Văn A">
+        </div>
+        <button class="btn-primary" onclick="handleRegister()">GỬI YÊU CẦU ĐĂNG KÝ</button>
+        <div class="link-text" onclick="switchScreen('loginScreen')">Quay lại Đăng nhập</div>
     </div>
 
-    <button class="btn-add" onclick="addToCart()">+ THÊM VÀO DANH SÁCH CA</button>
-
-    <div class="cart-section">
-        <div class="cart-title">
-            <span>Danh sách chờ gửi (<span id="cartCount">0</span>)</span>
+    <!-- MÀN HÌNH: ĐỔI MẬT KHẨU -->
+    <div id="changePassScreen" class="screen">
+        <h2>ĐỔI MẬT KHẨU</h2>
+        <div class="form-group">
+            <label>Mật khẩu cũ:</label>
+            <input type="password" id="oldPass" placeholder="Nhập mật khẩu cũ...">
         </div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Mô tả / SKU</th>
-                    <th>Giao/Nhận</th>
-                    <th>Xóa</th>
-                </tr>
-            </thead>
-            <tbody id="cartTableBody">
-                <tr><td colspan="3" style="text-align: center; color: #777;">Chưa có sản phẩm nào được thêm.</td></tr>
-            </tbody>
-        </table>
+        <div class="form-group">
+            <label>Mật khẩu mới:</label>
+            <input type="password" id="newPass" placeholder="Nhập mật khẩu mới...">
+        </div>
+        <button class="btn-primary" onclick="handleUpdatePassword()">XÁC NHẬN ĐỔI</button>
+        <button class="btn-secondary" onclick="switchScreen('mainScreen')">Quay lại Sổ Giao Ca</button>
+    </div>
 
-        <button class="btn-submit-all" onclick="submitAllData()">GỬI TẤT CẢ LÊN HỆ THỐNG</button>
-        <div id="loadingText" class="loading">Đang đẩy dữ liệu hàng loạt lên Google Sheets...</div>
+    <!-- MÀN HÌNH: THÊM MÃ BARCODE MỚI (MỚI) -->
+    <div id="addNewBarcodeScreen" class="screen">
+        <h2>THÊM MÃ BARCODE MỚI</h2>
+        <div class="form-group">
+            <label>Quét Barcode Mới:</label>
+            <input type="text" id="newBarcode" placeholder="Quét hoặc nhập mã barcode..." autocomplete="off">
+        </div>
+        <div class="form-group">
+            <label>Mô tả sản phẩm:</label>
+            <input type="text" id="newMoTa" placeholder="Nhập mô tả chi tiết...">
+        </div>
+        <div class="form-group">
+            <label>Mã SKU:</label>
+            <input type="text" id="newSku" placeholder="Nhập mã SKU tương ứng...">
+        </div>
+        <button class="btn-primary" onclick="handleAddNewBarcode()">LƯU MÃ MỚI VÀO HỆ THỐNG</button>
+        <button class="btn-secondary" onclick="switchScreen('mainScreen')">Quay lại Sổ Giao Ca</button>
+    </div>
+
+    <!-- MÀN HÌNH: SỔ GIAO CA CHÍNH -->
+    <div id="mainScreen" class="screen">
+        <div class="header-user">
+            <div>Xin chào: <span id="displayName">Admin</span></div>
+            <div>
+                <button onclick="switchScreen('changePassScreen')" style="background:#1a73e8; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:11px; cursor:pointer; margin-right:4px;">Đổi pass</button>
+                <button class="btn-logout" onclick="handleLogout()">Đăng xuất</button>
+            </div>
+        </div>
+
+        <h2>SỔ GIAO CA SẢN XUẤT</h2>
+        
+        <!-- Nút chuyển sang màn hình Thêm mã mới -->
+        <button class="btn-warning" onclick="switchScreen('addNewBarcodeScreen')">+ THÊM MÃ BARCODE MỚI VÀO HỆ THỐNG</button>
+        <hr style="border: 0; border-top: 1px solid #ddd; margin: 10px 0;">
+
+        <div class="form-group">
+            <label>Ngày Báo Cáo:</label>
+            <input type="date" id="ngayBaoCao">
+        </div>
+
+        <div class="row-group">
+            <div class="form-group">
+                <label>Kíp làm việc:</label>
+                <select id="kipLamViec">
+                    <option value="Kíp Ngày (08h-20h)">Kíp Ngày (08h - 20h)</option>
+                    <option value="Kíp Đêm (20h-08h)">Kíp Đêm (20h - 08h)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Ca làm việc:</label>
+                <select id="caLamViec">
+                    <option value="Ca A">Ca A</option>
+                    <option value="Ca B">Ca B</option>
+                    <option value="Ca C">Ca C</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Quét Barcode Sản Phẩm / Máy:</label>
+            <input type="text" id="barcodeInput" placeholder="Chạm hoặc quét mã..." autocomplete="off">
+        </div>
+
+        <div class="form-group">
+            <label>Mô tả:</label>
+            <input type="text" id="moTa" class="readonly" readonly placeholder="Tự động hiển thị mô tả...">
+        </div>
+
+        <div class="form-group">
+            <label>Tên SKU:</label>
+            <input type="text" id="sku" class="readonly" readonly placeholder="Tự động hiển thị SKU...">
+        </div>
+
+        <div class="row-group">
+            <div class="form-group">
+                <label>SL Giao:</label>
+                <input type="number" id="slGiao" placeholder="Giao">
+            </div>
+            <div class="form-group">
+                <label>SL Nhận:</label>
+                <input type="number" id="slNhan" placeholder="Nhận">
+            </div>
+        </div>
+
+        <button class="btn-primary" onclick="addToCart()">+ THÊM VÀO DANH SÁCH CA</button>
+
+        <div style="margin-top: 15px; border-top: 2px dashed #ddd; padding-top: 10px;">
+            <div style="font-size: 14px; font-weight: bold; margin-bottom: 6px;">Danh sách chờ gửi (<span id="cartCount">0</span>)</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mô tả / SKU</th>
+                        <th>Giao/Nhận</th>
+                        <th>Xóa</th>
+                    </tr>
+                </thead>
+                <tbody id="cartTableBody">
+                    <tr><td colspan="3" style="text-align: center; color: #777;">Chưa có sản phẩm.</td></tr>
+                </tbody>
+            </table>
+
+            <button id="btnSubmitAll" class="btn-submit-all" onclick="submitAllData()">GỬI TẤT CẢ LÊN HỆ THỐNG</button>
+            <div id="loadingText" class="loading">Đang đẩy dữ liệu hàng loạt lên Google Sheets...</div>
+        </div>
     </div>
 </div>
 
@@ -116,34 +211,176 @@
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwo27spaopjJSXN1jAZmLMjt5-8yOTlQSG7FXWThGKFRHaqZuEGH4HO6QTtmUFUZczZ/exec";
 
     let database = [];
+    let nhanVienList = [];
     let cartItems = [];
+    let currentUser = null;
 
-    // Tự động gán ngày hôm nay vào ô chọn ngày khi mở app
     window.onload = function() {
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('ngayBaoCao').value = today;
-
-        fetch(SCRIPT_URL)
-            .then(response => response.json())
-            .then(data => {
-                database = data;
-                document.getElementById('syncStatus').innerText = "Đã đồng bộ " + database.length + " mã sản phẩm.";
-            })
-            .catch(error => {
-                document.getElementById('syncStatus').innerText = "Lỗi tải danh mục! Kiểm tra kết nối mạng.";
-                document.getElementById('syncStatus').style.color = "red";
-            });
+        fetchMasterData();
     };
 
+    function fetchMasterData() {
+        fetch(SCRIPT_URL)
+            .then(res => res.json())
+            .then(data => {
+                database = data.database;
+                nhanVienList = data.nhanVienList;
+            })
+            .catch(err => console.log("Lỗi tải dữ liệu:", err));
+    }
+
+    function switchScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+        if (screenId === 'mainScreen') {
+            fetchMasterData(); // Tải lại danh mục mới nhất khi quay về màn hình chính
+        }
+    }
+
+    function handleLogin() {
+        const user = document.getElementById('loginUser').value.trim();
+        const pass = document.getElementById('loginPass').value.trim();
+
+        if (!user || !pass) {
+            alert("Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu!");
+            return;
+        }
+
+        fetch(SCRIPT_URL)
+            .then(res => res.json())
+            .then(data => {
+                nhanVienList = data.nhanVienList;
+                database = data.database;
+
+                const found = nhanVienList.find(item => item.username.toLowerCase() === user.toLowerCase() && item.password === pass);
+
+                if (found) {
+                    if (found.trangThai !== "Active") {
+                        alert("Tài khoản đang chờ duyệt (Pending). Vui lòng đợi Admin kích hoạt!");
+                        return;
+                    }
+                    currentUser = found;
+                    document.getElementById('displayName').innerText = found.hoTen + " (" + found.username + ")";
+                    switchScreen('mainScreen');
+                    document.getElementById('barcodeInput').focus();
+                } else {
+                    alert("Sai tên đăng nhập hoặc mật khẩu!");
+                }
+            });
+    }
+
+    function handleRegister() {
+        const user = document.getElementById('regUser').value.trim();
+        const pass = document.getElementById('regPass').value.trim();
+        const name = document.getElementById('regName').value.trim();
+
+        if (!user || !pass || !name) {
+            alert("Vui lòng điền đủ thông tin đăng ký!");
+            return;
+        }
+
+        const payload = { action: "register", username: user, password: pass, hoTen: name };
+
+        fetch(SCRIPT_URL, {
+            method: 'POST', mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(() => {
+            alert("Đăng ký thành công! Vui lòng chờ Admin (Sếp) duyệt Active.");
+            switchScreen('loginScreen');
+        })
+        .catch(err => alert("Lỗi kết nối: " + err));
+    }
+
+    function handleUpdatePassword() {
+        const oldP = document.getElementById('oldPass').value.trim();
+        const newP = document.getElementById('newPass').value.trim();
+
+        if (!oldP || !newP) {
+            alert("Vui lòng nhập đủ mật khẩu cũ và mới!");
+            return;
+        }
+
+        const payload = { action: "changePassword", username: currentUser.username, oldPassword: oldP, newPassword: newP };
+
+        fetch(SCRIPT_URL, {
+            method: 'POST', mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(() => {
+            alert("Đổi mật khẩu thành công!");
+            currentUser.password = newP;
+            document.getElementById('oldPass').value = "";
+            document.getElementById('newPass').value = "";
+            switchScreen('mainScreen');
+        })
+        .catch(err => alert("Lỗi kết nối: " + err));
+    }
+
+    // XỬ LÝ THÊM MÃ BARCODE MỚI (KIỂM TRA TRÙNG THEO BARCODE)
+    function handleAddNewBarcode() {
+        const barcode = document.getElementById('newBarcode').value.trim();
+        const moTa = document.getElementById('newMoTa').value.trim();
+        const sku = document.getElementById('newSku').value.trim();
+
+        if (!barcode || !moTa || !sku) {
+            alert("Vui lòng quét mã và điền đầy đủ Mô tả và SKU!");
+            return;
+        }
+
+        // Lọc kiểm tra trùng lặp trên bộ nhớ hiện tại theo Barcode
+        const exists = database.find(item => item.barcode.toLowerCase() === barcode.toLowerCase());
+        if (exists) {
+            alert("Mã Barcode [" + barcode + "] đã tồn tại trong hệ thống với Mô tả: '" + exists.moTa + "'! Không thể thêm mới.");
+            return;
+        }
+
+        const payload = {
+            action: "addNewBarcode",
+            barcode: barcode,
+            moTa: moTa,
+            sku: sku
+        };
+
+        fetch(SCRIPT_URL, {
+            method: 'POST', mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(() => {
+            alert("Đã thêm mã Barcode mới thành công vào hệ thống!");
+            // Cập nhật ngay vào database tạm trên app để dùng luôn không cần tải lại
+            database.push({ barcode: barcode, moTa: moTa, sku: sku });
+            
+            // Xóa form và quay về màn hình chính
+            document.getElementById('newBarcode').value = "";
+            document.getElementById('newMoTa').value = "";
+            document.getElementById('newSku').value = "";
+            switchScreen('mainScreen');
+        })
+        .catch(err => alert("Lỗi kết nối: " + err));
+    }
+
+    function handleLogout() {
+        currentUser = null;
+        document.getElementById('loginUser').value = "";
+        document.getElementById('loginPass').value = "";
+        switchScreen('loginScreen');
+    }
+
+    // Quét barcode ca sản xuất
     const barcodeInput = document.getElementById('barcodeInput');
     const moTaInput = document.getElementById('moTa');
     const skuInput = document.getElementById('sku');
     let currentBarcode = "";
 
-    barcodeInput.addEventListener('input', function (e) {
+    barcodeInput.addEventListener('input', function () {
         const code = barcodeInput.value.trim();
         const found = database.find(item => item.barcode.toLowerCase() === code.toLowerCase());
-        
         if (found) {
             currentBarcode = found.barcode;
             moTaInput.value = found.moTa;
@@ -156,9 +393,7 @@
     });
 
     barcodeInput.addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            validateAndMove();
-        }
+        if (e.key === 'Enter') validateAndMove();
     });
 
     barcodeInput.addEventListener('blur', function () {
@@ -168,12 +403,11 @@
     function validateAndMove() {
         const code = barcodeInput.value.trim();
         if (code === "") return;
-        
         const found = database.find(item => item.barcode.toLowerCase() === code.toLowerCase());
         if (found) {
             document.getElementById('slGiao').focus();
         } else {
-            alert("Mã Barcode [" + code + "] không tồn tại trong hệ thống!");
+            alert("Mã Barcode [" + code + "] chưa có trong hệ thống! Vui lòng bấm nút 'THÊM MÃ BARCODE MỚI' phía trên để cập nhật.");
             resetInputOnly();
         }
     }
@@ -185,7 +419,7 @@
         const slNhan = document.getElementById('slNhan').value;
 
         if (!moTa || !slGiao || !slNhan) {
-            alert("Vui lòng quét mã hợp lệ và nhập đủ số lượng Giao / Nhận trước khi thêm!");
+            alert("Vui lòng quét mã và điền đủ số lượng Giao / Nhận!");
             return;
         }
 
@@ -206,7 +440,7 @@
         document.getElementById('cartCount').innerText = cartItems.length;
 
         if (cartItems.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #777;">Chưa có sản phẩm nào được thêm.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #777;">Chưa có sản phẩm.</td></tr>';
             return;
         }
 
@@ -228,38 +462,45 @@
 
     function submitAllData() {
         if (cartItems.length === 0) {
-            alert("Danh sách đang trống, vui lòng thêm ít nhất một sản phẩm!");
+            alert("Danh sách đang trống!");
             return;
         }
 
-        const ngayBaoCao = document.getElementById('ngayBaoCao').value;
-        const kip = document.getElementById('kipLamViec').value;
-        const ca = document.getElementById('caLamViec').value;
+        const btnSubmit = document.getElementById('btnSubmitAll');
+        const loadingText = document.getElementById('loadingText');
+
+        btnSubmit.disabled = true;
+        btnSubmit.innerText = "ĐANG GỬI...";
+        loadingText.style.display = 'block';
 
         const payload = {
-            ngayBaoCao: ngayBaoCao,
-            kip: kip,
-            caLamViec: ca,
+            action: "submitShift",
+            username: currentUser.username,
+            ngayBaoCao: document.getElementById('ngayBaoCao').value,
+            kip: document.getElementById('kipLamViec').value,
+            caLamViec: document.getElementById('caLamViec5' || 'caLamViec').value,
             items: cartItems
         };
 
-        document.getElementById('loadingText').style.display = 'block';
-
         fetch(SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
+            method: 'POST', mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         })
         .then(() => {
-            document.getElementById('loadingText').style.display = 'none';
-            alert("Đã gửi thành công " + cartItems.length + " mục cho ngày " + ngayBaoCao + " (" + kip + " - " + ca + ")!");
+            loadingText.style.display = 'none';
+            btnSubmit.disabled = false;
+            btnSubmit.innerText = "GỬI TẤT CẢ LÊN HỆ THỐNG";
+
+            alert("Đã gửi thành công " + cartItems.length + " mục!");
             cartItems = [];
             updateCartTable();
             resetInputOnly();
         })
         .catch(error => {
-            document.getElementById('loadingText').style.display = 'none';
+            loadingText.style.display = 'none';
+            btnSubmit.disabled = false;
+            btnSubmit.innerText = "GỬI TẤT CẢ LÊN HỆ THỐNG";
             alert("Lỗi kết nối: " + error);
         });
     }
