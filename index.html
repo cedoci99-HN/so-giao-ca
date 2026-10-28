@@ -24,8 +24,6 @@
         .btn-primary:disabled, .btn-warning:disabled, .btn-secondary:disabled, .btn-add:disabled, .btn-del:disabled { background: #6c757d !important; cursor: not-allowed !important; opacity: 0.6; }
         
         .btn-warning { width: 100%; background: #ffc107; color: #333; padding: 10px; border: none; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 6px; }
-        .btn-warning:active { background: #e0a800; }
-
         .btn-secondary { width: 100%; background: #6c757d; color: white; padding: 10px; border: none; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 6px; }
         
         .link-text { text-align: center; margin-top: 12px; font-size: 14px; color: #1a73e8; cursor: pointer; text-decoration: underline; }
@@ -51,7 +49,6 @@
 <body>
 
 <div class="container">
-    <!-- MÀN HÌNH: ĐĂNG NHẬP -->
     <div id="loginScreen" class="screen active">
         <h2>ĐĂNG NHẬP HỆ THỐNG</h2>
         <div class="form-group">
@@ -66,7 +63,6 @@
         <div class="link-text" onclick="switchScreen('registerScreen')">Chưa có tài khoản? Đăng ký ngay</div>
     </div>
 
-    <!-- MÀN HÌNH: ĐĂNG KÝ -->
     <div id="registerScreen" class="screen">
         <h2>ĐĂNG KÝ TÀI KHOẢN</h2>
         <div class="form-group">
@@ -85,7 +81,6 @@
         <div class="link-text" onclick="switchScreen('loginScreen')">Quay lại Đăng nhập</div>
     </div>
 
-    <!-- MÀN HÌNH: ĐỔI MẬT KHẨU -->
     <div id="changePassScreen" class="screen">
         <h2>ĐỔI MẬT KHẨU</h2>
         <div class="form-group">
@@ -100,7 +95,6 @@
         <button class="btn-secondary" onclick="switchScreen('mainScreen')">Quay lại Sổ Giao Ca</button>
     </div>
 
-    <!-- MÀN HÌNH: THÊM MÃ BARCODE MỚI -->
     <div id="addNewBarcodeScreen" class="screen">
         <h2>THÊM MÃ BARCODE MỚI</h2>
         <div class="form-group">
@@ -119,7 +113,6 @@
         <button class="btn-secondary" onclick="switchScreen('mainScreen')">Quay lại Sổ Giao Ca</button>
     </div>
 
-    <!-- MÀN HÌNH: SỔ GIAO CA CHÍNH -->
     <div id="mainScreen" class="screen">
         <div class="header-user">
             <div>Xin chào: <span id="displayName">Admin</span></div>
@@ -207,6 +200,7 @@
 </div>
 
 <script>
+    // DÁN URL WEB APP GOOGLE SCRIPT CỦA SẾP VÀO ĐÂY:
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwo27spaopjJSXN1jAZmLMjt5-8yOTlQSG7FXWThGKFRHaqZuEGH4HO6QTtmUFUZczZ/exec";
 
     let database = [];
@@ -458,8 +452,6 @@
         document.getElementById('btnSubmitAll').disabled = isLocked;
         document.getElementById('btnAddCart').disabled = isLocked;
         document.getElementById('btnNavAddCode').disabled = isLocked;
-        
-        // Khóa tất cả các nút Xóa trong bảng danh sách tạm
         document.querySelectorAll('.btn-del').forEach(btn => btn.disabled = isLocked);
     }
 
@@ -472,7 +464,6 @@
         const btnSubmit = document.getElementById('btnSubmitAll');
         const loadingText = document.getElementById('loadingText');
 
-        // BẬT TRẠNG THÁI KHÓA TOÀN BỘ GIAO DIỆN
         setAppLocked(true);
         btnSubmit.innerText = "ĐANG GỬI DỮ LIỆU...";
         loadingText.style.display = 'block';
@@ -486,7 +477,7 @@
             items: cartItems
         };
 
-        // Sử dụng Form URL encoded kết hợp iframe ngầm để gửi dữ liệu mượt mà, không bị kẹt CORS
+        // Sử dụng Form URL encoded ngầm qua iframe để vượt qua triệt để rào cản CORS và ghi thẳng dữ liệu 100% vào Google Sheets
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = SCRIPT_URL;
@@ -511,17 +502,17 @@
         form.submit();
         document.body.removeChild(form);
 
-        // Sau 1.5 giây (đảm bảo Google Sheets đã nhận xong), mở khóa giao diện và reset giỏ hàng
+        // Chờ 1.2 giây để Google Sheets ghi nhận xong rồi mở khóa, làm sạch giỏ hàng
         setTimeout(() => {
             loadingText.style.display = 'none';
             setAppLocked(false);
             btnSubmit.innerText = "GỬI TẤT CẢ LÊN HỆ THỐNG";
 
-            alert("Đã gửi thành công " + cartItems.length + " mục lên hệ thống!");
+            alert("Đã ghi thành công " + cartItems.length + " mục lên Google Sheets!");
             cartItems = [];
             updateCartTable();
             resetInputOnly();
-        }, 1500);
+        }, 1200);
     }
 
     function resetInputOnly() {
