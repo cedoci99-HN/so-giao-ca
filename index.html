@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sổ Giao Ca - Hikvision PDA</title>
+    <title>Sổ Giao Ca - Cedo Việt Nam</title>
     <style>
         * { box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 12px; background: #f0f2f5; margin: 0; color: #333; }
         .container { max-width: 450px; margin: auto; background: #fff; padding: 16px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        h2 { text-align: center; font-size: 18px; color: #1a73e8; margin-top: 0; margin-bottom: 12px; font-weight: 700; }
+        h2 { text-align: center; font-size: 18px; color: #1a73e8; margin-top: 0; margin-bottom: 8px; font-weight: 700; }
         .sync-status { text-align: center; font-size: 12px; color: #28a745; margin-bottom: 12px; font-weight: bold; }
         .form-group { margin-bottom: 12px; }
         label { display: block; font-weight: 600; margin-bottom: 4px; font-size: 13px; color: #555; }
@@ -24,7 +24,7 @@
 
 <div class="container">
     <h2>SỔ GIAO CA SẢN XUẤT</h2>
-    <div id="syncStatus" class="sync-status">Đang tải danh mục máy...</div>
+    <div id="syncStatus" class="sync-status">Đang tải danh mục...</div>
     
     <div class="form-group">
         <label>Ca làm việc:</label>
@@ -35,18 +35,18 @@
     </div>
 
     <div class="form-group">
-        <label>Quét Barcode nhãn PT/DB:</label>
-        <input type="text" id="barcodeInput" placeholder="Chạm hoặc quét mã..." autofocus autocomplete="off">
+        <label>Quét Barcode:</label>
+        <input type="text" id="barcodeInput" placeholder="Chạm hoặc quét mã sản phẩm..." autofocus autocomplete="off">
     </div>
 
     <div class="form-group">
-        <label>Mô Tả:</label>
-        <input type="text" id="MoTa" class="readonly" readonly placeholder="Tự động hiển thị...">
+        <label>Mô tả:</label> <!-- Đã đổi từ Tên máy thành Mô tả -->
+        <input type="text" id="moTa" class="readonly" readonly placeholder="Tự động hiển thị mô tả...">
     </div>
 
     <div class="form-group">
         <label>Tên SKU:</label>
-        <input type="text" id="sku" class="readonly" readonly placeholder="Tự động hiển thị...">
+        <input type="text" id="sku" class="readonly" readonly placeholder="Tự động hiển thị SKU...">
     </div>
 
     <div class="form-group">
@@ -69,13 +69,12 @@
 
     let database = [];
 
-    // Tự động tải danh mục từ Google Sheets ngay khi mở App trên PDA/Laptop
     window.onload = function() {
         fetch(SCRIPT_URL)
             .then(response => response.json())
             .then(data => {
                 database = data;
-                document.getElementById('syncStatusinnerText' || 'syncStatus').innerText = "Đã đồng bộ " + database.length + " mã máy từ hệ thống.";
+                document.getElementById('syncStatus').innerText = "Đã đồng bộ " + database.length + " mã sản phẩm.";
             })
             .catch(error => {
                 document.getElementById('syncStatus').innerText = "Lỗi tải danh mục! Kiểm tra kết nối mạng.";
@@ -84,7 +83,7 @@
     };
 
     const barcodeInput = document.getElementById('barcodeInput');
-    const MoTaInput = document.getElementById('MoTa');
+    const moTaInput = document.getElementById('moTa');
     const skuInput = document.getElementById('sku');
     let currentBarcode = "";
 
@@ -94,11 +93,11 @@
         
         if (found) {
             currentBarcode = found.barcode;
-            MoTaInput.value = found.MoTa;
+            moTaInput.value = found.moTa;
             skuInput.value = found.sku;
         } else {
             currentBarcode = "";
-            MoTaInput.value = "";
+            moTaInput.value = "";
             skuInput.value = "";
         }
     });
@@ -128,20 +127,20 @@
 
     function submitData() {
         const ca = document.getElementById('caLamViec').value;
-        const MoTa = MoTaInput.value;
+        const moTa = moTaInput.value;
         const sku = skuInput.value;
         const slGiao = document.getElementById('slGiao').value;
         const slNhan = document.getElementById('slNhan').value;
 
-        if (!MoTa || !slGiao || !slNhan) {
-            alert("Vui lòng quét mã máy hợp lệ và nhập đầy đủ số lượng giao/nhận!");
+        if (!moTa || !slGiao || !slNhan) {
+            alert("Vui lòng quét mã barcode hợp lệ và nhập đầy đủ số lượng giao/nhận!");
             return;
         }
 
         const payload = {
             caLamViec: ca,
             barcode: currentBarcode,
-            MoTa: MoTa,
+            moTa: moTa,
             sku: sku,
             soLuongGiao: slGiao,
             soLuongNhan: slNhan
@@ -168,7 +167,7 @@
 
     function resetForm() {
         barcodeInput.value = "";
-        MoTaInput.value = "";
+        moTaInput.value = "";
         skuInput.value = "";
         currentBarcode = "";
         barcodeInput.focus();
