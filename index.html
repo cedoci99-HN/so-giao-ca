@@ -35,13 +35,13 @@
     </div>
 
     <div class="form-group">
-        <label>Quét Barcode Máy / SO:</label>
+        <label>Quét Barcode nhãn PT/DB:</label>
         <input type="text" id="barcodeInput" placeholder="Chạm hoặc quét mã..." autofocus autocomplete="off">
     </div>
 
     <div class="form-group">
-        <label>Tên Máy:</label>
-        <input type="text" id="tenMay" class="readonly" readonly placeholder="Tự động hiển thị...">
+        <label>Mô Tả:</label>
+        <input type="text" id="MoTa" class="readonly" readonly placeholder="Tự động hiển thị...">
     </div>
 
     <div class="form-group">
@@ -84,7 +84,7 @@
     };
 
     const barcodeInput = document.getElementById('barcodeInput');
-    const tenMayInput = document.getElementById('tenMay');
+    const MoTaInput = document.getElementById('MoTa');
     const skuInput = document.getElementById('sku');
     let currentBarcode = "";
 
@@ -94,11 +94,11 @@
         
         if (found) {
             currentBarcode = found.barcode;
-            tenMayInput.value = found.tenMay;
+            MoTaInput.value = found.MoTa;
             skuInput.value = found.sku;
         } else {
             currentBarcode = "";
-            tenMayInput.value = "";
+            MoTaInput.value = "";
             skuInput.value = "";
         }
     });
@@ -128,12 +128,12 @@
 
     function submitData() {
         const ca = document.getElementById('caLamViec').value;
-        const tenMay = tenMayInput.value;
+        const MoTa = MoTaInput.value;
         const sku = skuInput.value;
         const slGiao = document.getElementById('slGiao').value;
         const slNhan = document.getElementById('slNhan').value;
 
-        if (!tenMay || !slGiao || !slNhan) {
+        if (!MoTa || !slGiao || !slNhan) {
             alert("Vui lòng quét mã máy hợp lệ và nhập đầy đủ số lượng giao/nhận!");
             return;
         }
@@ -141,7 +141,7 @@
         const payload = {
             caLamViec: ca,
             barcode: currentBarcode,
-            tenMay: tenMay,
+            MoTa: MoTa,
             sku: sku,
             soLuongGiao: slGiao,
             soLuongNhan: slNhan
@@ -168,7 +168,7 @@
 
     function resetForm() {
         barcodeInput.value = "";
-        tenMayInput.value = "";
+        MoTaInput.value = "";
         skuInput.value = "";
         currentBarcode = "";
         barcodeInput.focus();
