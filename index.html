@@ -8,7 +8,8 @@
         * { box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 12px; background: #f0f2f5; margin: 0; color: #333; }
         .container { max-width: 450px; margin: auto; background: #fff; padding: 16px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        h2 { text-align: center; font-size: 18px; color: #1a73e8; margin-top: 0; margin-bottom: 16px; font-weight: 700; }
+        h2 { text-align: center; font-size: 18px; color: #1a73e8; margin-top: 0; margin-bottom: 12px; font-weight: 700; }
+        .sync-status { text-align: center; font-size: 12px; color: #28a745; margin-bottom: 12px; font-weight: bold; }
         .form-group { margin-bottom: 12px; }
         label { display: block; font-weight: 600; margin-bottom: 4px; font-size: 13px; color: #555; }
         input, select { width: 100%; padding: 10px 12px; border: 1px solid #ccd0d5; border-radius: 6px; font-size: 15px; background: #fff; }
@@ -23,19 +24,18 @@
 
 <div class="container">
     <h2>SỔ GIAO CA SẢN XUẤT</h2>
+    <div id="syncStatus" class="sync-status">Đang tải danh mục máy...</div>
     
     <div class="form-group">
         <label>Ca làm việc:</label>
         <select id="caLamViec">
-            <option value="Ca 1">Ca 1 (Sáng)</option>
-            <option value="Ca 2">Ca 2 (Chiều)</option>
-            <option value="Ca 3">Ca 3 (Đêm)</option>
+            <option value="Ca 1">Ca 1 (Ngày)</option>
+            <option value="Ca 2">Ca 2 (Đêm)</option>
         </select>
     </div>
 
     <div class="form-group">
         <label>Quét Barcode Máy / SO:</label>
-        <!-- Dùng sự kiện input để bắt trọn tốc độ quét của PDA -->
         <input type="text" id="barcodeInput" placeholder="Chạm hoặc quét mã..." autofocus autocomplete="off">
     </div>
 
@@ -64,23 +64,30 @@
 </div>
 
 <script>
-    // Danh mục máy (Đã có mã DHM01 của Sếp)
-    const database = [
-        { barcode: "DHM01", tenMay: "Máy DS 01", sku: "4248" },
-        { barcode: "MAC-01", tenMay: "Máy Thổi Film 01", sku: "SKU-HDPE-100mic" },
-        { barcode: "MAC-02", tenMay: "Máy Thổi Film 02", sku: "SKU-LDPE-50mic" },
-        { barcode: "CUT-01", tenMay: "Máy Cắt Túi 01", sku: "SKU-BAG-T-SHIRT" }
-    ];
-
     // Dán URL Web App Google Apps Script của Sếp vào đây:
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwo27spaopjJSXN1jAZmLMjt5-8yOTlQSG7FXWThGKFRHaqZuEGH4HO6QTtmUFUZczZ/exec";
+
+    let database = [];
+
+    // Tự động tải danh mục từ Google Sheets ngay khi mở App trên PDA/Laptop
+    window.onload = function() {
+        fetch(SCRIPT_URL)
+            .then(response => response.json())
+            .then(data => {
+                database = data;
+                document.getElementById('syncStatusinnerText' || 'syncStatus').innerText = "Đã đồng bộ " + database.length + " mã máy từ hệ thống.";
+            })
+            .catch(error => {
+                document.getElementById('syncStatus').innerText = "Lỗi tải danh mục! Kiểm tra kết nối mạng.";
+                document.getElementById('syncStatus').style.color = "red";
+            });
+    };
 
     const barcodeInput = document.getElementById('barcodeInput');
     const tenMayInput = document.getElementById('tenMay');
     const skuInput = document.getElementById('sku');
     let currentBarcode = "";
 
-    // Bắt sự kiện thay đổi trên ô input (tối ưu hóa tuyệt đối cho máy quét PDA phần cứng)
     barcodeInput.addEventListener('input', function (e) {
         const code = barcodeInput.value.trim();
         const found = database.find(item => item.barcode.toLowerCase() === code.toLowerCase());
@@ -89,22 +96,35 @@
             currentBarcode = found.barcode;
             tenMayInput.value = found.tenMay;
             skuInput.value = found.sku;
+        } else {
+            currentBarcode = "";
+            tenMayInput.value = "";
+            skuInput.value = "";
         }
     });
 
-    // Bắt thêm phím Enter (nếu máy quét cấu hình gửi kèm ký tự Enter xuống dòng)
     barcodeInput.addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
-            const code = barcodeInput.value.trim();
-            const found = database.find(item => item.barcode.toLowerCase() === code.toLowerCase());
-            if (found) {
-                document.getElementById('slGiao').focus();
-            } else {
-                alert("Mã Barcode [" + code + "] không tồn tại!");
-                resetForm();
-            }
+            validateAndMove();
         }
     });
+
+    barcodeInput.addEventListener('blur', function () {
+        validateAndMove();
+    });
+
+    function validateAndMove() {
+        const code = barcodeInput.value.trim();
+        if (code === "") return;
+        
+        const found = database.find(item => item.barcode.toLowerCase() === code.toLowerCase());
+        if (found) {
+            document.getElementById('slGiao').focus();
+        } else {
+            alert("Mã Barcode [" + code + "] không tồn tại trong hệ thống!");
+            resetForm();
+        }
+    }
 
     function submitData() {
         const ca = document.getElementById('caLamViec').value;
@@ -114,7 +134,7 @@
         const slNhan = document.getElementById('slNhan').value;
 
         if (!tenMay || !slGiao || !slNhan) {
-            alert("Vui lòng quét mã máy và nhập đầy đủ số lượng giao/nhận!");
+            alert("Vui lòng quét mã máy hợp lệ và nhập đầy đủ số lượng giao/nhận!");
             return;
         }
 
@@ -150,8 +170,6 @@
         barcodeInput.value = "";
         tenMayInput.value = "";
         skuInput.value = "";
-        document.getElementById('slGiao').value = "";
-        document.getElementById('slNhan').value = "";
         currentBarcode = "";
         barcodeInput.focus();
     }
