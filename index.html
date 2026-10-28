@@ -13,7 +13,7 @@
         label { display: block; font-weight: 600; margin-bottom: 4px; font-size: 13px; color: #555; }
         input, select { width: 100%; padding: 10px 12px; border: 1px solid #ccd0d5; border-radius: 6px; font-size: 15px; background: #fff; }
         input:focus, select:focus { border-color: #1a73e8; outline: none; box-shadow: 0 0 0 2px rgba(26,115,232,0.2); }
-        .readonly { background: #f5f6f7; font-weight: bold; color: #1c1e21; }
+        .readonly { background: #e9ecef; font-weight: bold; color: #000; }
         .btn-submit { width: 100%; background: #28a745; color: white; padding: 12px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 8px; }
         .btn-submit:active { background: #218838; }
         .loading { display: none; text-align: center; color: #1a73e8; font-weight: bold; margin-top: 10px; font-size: 14px; }
@@ -27,14 +27,15 @@
     <div class="form-group">
         <label>Ca làm việc:</label>
         <select id="caLamViec">
-            <option value="Ca 1">Ca 1 (Ngày)</option>
-            <option value="Ca 2">Ca 2 (Đêm)</option>
+            <option value="Ca 1">Ca 1 (Sáng)</option>
+            <option value="Ca 2">Ca 2 (Chiều)</option>
+            <option value="Ca 3">Ca 3 (Đêm)</option>
         </select>
     </div>
 
     <div class="form-group">
         <label>Quét Barcode Máy / SO:</label>
-        <!-- Tự động focus để phím cứng quét mã của Hikvision bắn dữ liệu thẳng vào đây -->
+        <!-- Dùng sự kiện input để bắt trọn tốc độ quét của PDA -->
         <input type="text" id="barcodeInput" placeholder="Chạm hoặc quét mã..." autofocus autocomplete="off">
     </div>
 
@@ -63,10 +64,12 @@
 </div>
 
 <script>
-    // Dữ liệu danh mục máy và SKU (Sếp có thể thêm bớt danh sách mã barcode máy tại đây)
+    // Danh mục máy (Đã có mã DHM01 của Sếp)
     const database = [
-        { barcode: "DHM01", tenMay: "Máy Cắt DS 01", sku: "4248" },
-        { barcode: "DHM02", tenMay: "Máy Cắt DS 02", sku: "4246" },
+        { barcode: "DHM01", tenMay: "Máy DS 01", sku: "4248" },
+        { barcode: "MAC-01", tenMay: "Máy Thổi Film 01", sku: "SKU-HDPE-100mic" },
+        { barcode: "MAC-02", tenMay: "Máy Thổi Film 02", sku: "SKU-LDPE-50mic" },
+        { barcode: "CUT-01", tenMay: "Máy Cắt Túi 01", sku: "SKU-BAG-T-SHIRT" }
     ];
 
     // Dán URL Web App Google Apps Script của Sếp vào đây:
@@ -77,25 +80,31 @@
     const skuInput = document.getElementById('sku');
     let currentBarcode = "";
 
-    // Lắng nghe sự kiện phím Enter do thiết bị PDA Hikvision bắn ra sau khi quét xong mã vạch
-    barcodeInput.addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            processScan(barcodeInput.value.trim());
-        }
-    });
-
-    function processScan(code) {
+    // Bắt sự kiện thay đổi trên ô input (tối ưu hóa tuyệt đối cho máy quét PDA phần cứng)
+    barcodeInput.addEventListener('input', function (e) {
+        const code = barcodeInput.value.trim();
         const found = database.find(item => item.barcode.toLowerCase() === code.toLowerCase());
+        
         if (found) {
             currentBarcode = found.barcode;
             tenMayInput.value = found.tenMay;
             skuInput.value = found.sku;
-            document.getElementById('slGiao').focus(); // Chuyển con trỏ sang ô số lượng giao cực nhanh
-        } else {
-            alert("Mã Barcode [" + code + "] không tồn tại trong hệ thống!");
-            resetForm();
         }
-    }
+    });
+
+    // Bắt thêm phím Enter (nếu máy quét cấu hình gửi kèm ký tự Enter xuống dòng)
+    barcodeInput.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            const code = barcodeInput.value.trim();
+            const found = database.find(item => item.barcode.toLowerCase() === code.toLowerCase());
+            if (found) {
+                document.getElementById('slGiao').focus();
+            } else {
+                alert("Mã Barcode [" + code + "] không tồn tại!");
+                resetForm();
+            }
+        }
+    });
 
     function submitData() {
         const ca = document.getElementById('caLamViec').value;
@@ -120,10 +129,9 @@
 
         document.getElementById('loadingText').style.display = 'block';
 
-        // Gửi dữ liệu về Google Sheets thông qua Fetch API
         fetch(SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors', // Tránh lỗi CORS khi gọi từ web tĩnh lên Google Script
+            mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         })
